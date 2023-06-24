@@ -39,9 +39,9 @@ impl ToTokens for Rule {
         tokens.append_all(quote!({
             #matches
 
-            impl proc_macro_rules::syn::parse::Parse for Matches {
-                fn parse(ps: proc_macro_rules::syn::parse::ParseStream) -> proc_macro_rules::syn::parse::Result<Matches> {
-                    let mut ms: proc_macro_rules::MatchSet<#builder_name> = proc_macro_rules::MatchSet::new(ps.fork());
+            impl deno_proc_macro_rules::syn::parse::Parse for Matches {
+                fn parse(ps: deno_proc_macro_rules::syn::parse::ParseStream) -> deno_proc_macro_rules::syn::parse::Result<Matches> {
+                    let mut ms: deno_proc_macro_rules::MatchSet<#builder_name> = deno_proc_macro_rules::MatchSet::new(ps.fork());
                     // parse the whole initial ParseStream to avoid 'unexpected token' errors
                     let _: Result<proc_macro2::TokenStream, _> = ps.parse();
 
@@ -53,11 +53,11 @@ impl ToTokens for Rule {
                         Some(p.matches.finalise())
                     } else {
                         None
-                    }).next().ok_or_else(|| proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "pattern could not be parsed"))
+                    }).next().ok_or_else(|| deno_proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "pattern could not be parsed"))
                 }
             }
 
-            match proc_macro_rules::syn::parse2(tts.clone()) {
+            match deno_proc_macro_rules::syn::parse2(tts.clone()) {
                 Ok(Matches { #(#vars,)* }) => {
                     let value = { #body };
 
@@ -106,7 +106,7 @@ fn matches(builder_name: &Ident, variables: &[MetaVar]) -> TokenStream2 {
             }
         }
 
-        impl proc_macro_rules::Fork for #builder_name {
+        impl deno_proc_macro_rules::Fork for #builder_name {
             type Parent = ();
             fn hoist(&self, outer: &mut ()) {}
             #fork_impl
@@ -184,7 +184,7 @@ fn sub_matches(
     quote! {
         #builder
 
-        impl proc_macro_rules::Fork for #builder_name {
+        impl deno_proc_macro_rules::Fork for #builder_name {
             type Parent = #outer_builder_name;
             fn hoist(&self, outer: &mut #outer_builder_name) {
                 #(#hoists)*
@@ -271,7 +271,7 @@ impl ToTokens for FragmentBuilder {
                 let sep = match sep {
                     Some(sep) => quote! {
                         ms.expect(|ps, _| {
-                            if ps.peek(proc_macro_rules::syn::Token!(#sep)) {
+                            if ps.peek(deno_proc_macro_rules::syn::Token!(#sep)) {
                                 let _: proc_macro2::TokenTree = ps.parse().unwrap();
                             } else {
                                 terminate = true;
@@ -287,8 +287,8 @@ impl ToTokens for FragmentBuilder {
                     while !terminate && ms.fork(|ps, match_handler| {
                         #match_builder
 
-                        let mut ms: proc_macro_rules::MatchSet<#sub_builder_name> =
-                            proc_macro_rules::MatchSet::new(ps);
+                        let mut ms: deno_proc_macro_rules::MatchSet<#sub_builder_name> =
+                            deno_proc_macro_rules::MatchSet::new(ps);
 
                         #rule
                         #sep
@@ -313,7 +313,7 @@ impl ToTokens for FragmentBuilder {
                 let sep = match sep {
                     Some(sep) => quote! {
                         ms.expect(|ps, _| {
-                            if ps.peek(proc_macro_rules::syn::Token!(#sep)) {
+                            if ps.peek(deno_proc_macro_rules::syn::Token!(#sep)) {
                                 let _: proc_macro2::TokenTree = ps.parse().unwrap();
                             } else {
                                 terminate = true;
@@ -330,8 +330,8 @@ impl ToTokens for FragmentBuilder {
                     while !terminate && ms.fork(|ps, match_handler| {
                         #match_builder
 
-                        let mut ms: proc_macro_rules::MatchSet<#sub_builder_name> =
-                            proc_macro_rules::MatchSet::new(ps);
+                        let mut ms: deno_proc_macro_rules::MatchSet<#sub_builder_name> =
+                            deno_proc_macro_rules::MatchSet::new(ps);
 
                         #rule
                         #sep
@@ -344,7 +344,7 @@ impl ToTokens for FragmentBuilder {
                         count += 1;
                     }
                     if count == 0 {
-                        return Err(proc_macro_rules::syn::Error::new(
+                        return Err(deno_proc_macro_rules::syn::Error::new(
                             proc_macro2::Span::call_site(),
                             "At least one iteration required",
                         ));
@@ -363,7 +363,7 @@ impl ToTokens for FragmentBuilder {
                 let sep = match sep {
                     Some(sep) => quote! {
                         ms.expect(|ps, _| {
-                            if ps.peek(proc_macro_rules::syn::Token!(#sep)) {
+                            if ps.peek(deno_proc_macro_rules::syn::Token!(#sep)) {
                                 let _: proc_macro2::TokenTree = ps.parse().unwrap();
                             }
                             Ok(())
@@ -376,8 +376,8 @@ impl ToTokens for FragmentBuilder {
                     ms.fork(|ps, match_handler| {
                         #match_builder
 
-                        let mut ms: proc_macro_rules::MatchSet<#sub_builder_name> =
-                            proc_macro_rules::MatchSet::new(ps);
+                        let mut ms: deno_proc_macro_rules::MatchSet<#sub_builder_name> =
+                            deno_proc_macro_rules::MatchSet::new(ps);
 
                         #rule
                         #sep
@@ -399,7 +399,7 @@ impl ToTokens for FragmentBuilder {
                         if i.to_string() == #i_str {
                             Ok(())
                         } else {
-                            Err(proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "bad ident"))
+                            Err(deno_proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "bad ident"))
                         }
                     })?;
                 });
@@ -413,7 +413,7 @@ impl ToTokens for FragmentBuilder {
                         if p.to_string() == #p_str {
                             Ok(())
                         } else {
-                            Err(proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "bad punct"))
+                            Err(deno_proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "bad punct"))
                         }
                     })?;
                 });
@@ -427,7 +427,7 @@ impl ToTokens for FragmentBuilder {
                         if l.to_string() == #l_str {
                             Ok(())
                         } else {
-                            Err(proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "bad literal"))
+                            Err(deno_proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "bad literal"))
                         }
                     })?;
                 });
@@ -455,7 +455,7 @@ impl ToTokens for FragmentBuilder {
                             proc_macro2::TokenTree::Group(g) => {
                                 if g.delimiter() != #d_toks {
                                     return Err(
-                                        proc_macro_rules::syn::Error::new(
+                                        deno_proc_macro_rules::syn::Error::new(
                                             proc_macro2::Span::call_site(),
                                             "bad delimiter",
                                         ));
@@ -465,10 +465,10 @@ impl ToTokens for FragmentBuilder {
 
                                     struct MatchParser(#sub_builder_name);
 
-                                    impl proc_macro_rules::syn::parse::Parse for MatchParser {
-                                        fn parse(ps: proc_macro_rules::syn::parse::ParseStream) -> proc_macro_rules::syn::parse::Result<MatchParser> {
-                                            let mut ms: proc_macro_rules::MatchSet<#sub_builder_name> =
-                                                proc_macro_rules::MatchSet::new(ps.fork());
+                                    impl deno_proc_macro_rules::syn::parse::Parse for MatchParser {
+                                        fn parse(ps: deno_proc_macro_rules::syn::parse::ParseStream) -> deno_proc_macro_rules::syn::parse::Result<MatchParser> {
+                                            let mut ms: deno_proc_macro_rules::MatchSet<#sub_builder_name> =
+                                                deno_proc_macro_rules::MatchSet::new(ps.fork());
                                             // parse the whole initial ParseStream to avoid 'unexpected token' errors
                                             let _: Result<proc_macro2::TokenStream, _> = ps.parse();
 
@@ -479,16 +479,16 @@ impl ToTokens for FragmentBuilder {
                                                 Some(MatchParser(p.matches))
                                             } else {
                                                 None
-                                            }).next().ok_or_else(|| proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "group could not be parsed"))
+                                            }).next().ok_or_else(|| deno_proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "group could not be parsed"))
                                         }
                                     }
 
-                                    let mp: MatchParser = proc_macro_rules::syn::parse2(g.stream())?;
-                                    proc_macro_rules::Fork::hoist(&mp.0, matches);
+                                    let mp: MatchParser = deno_proc_macro_rules::syn::parse2(g.stream())?;
+                                    deno_proc_macro_rules::Fork::hoist(&mp.0, matches);
                                 }
                                 Ok(())
                             }
-                            _ => Err(proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "expected group")),
+                            _ => Err(deno_proc_macro_rules::syn::Error::new(proc_macro2::Span::call_site(), "expected group")),
                         }
                     })?;
                 });
