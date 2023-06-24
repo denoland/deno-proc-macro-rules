@@ -70,7 +70,7 @@
 pub extern crate syn;
 
 pub use crate::match_set::{Fork, MatchSet};
-pub use proc_macro_rules_macros::rules;
+pub use deno_proc_macro_rules_macros::rules;
 
 mod match_set;
 
